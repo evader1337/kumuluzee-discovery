@@ -20,6 +20,8 @@
 */
 package com.kumuluz.ee.discovery.utils;
 
+import com.kumuluz.ee.discovery.enums.ServiceType;
+
 import java.net.URL;
 
 /**
@@ -34,11 +36,13 @@ public class Etcd2Service {
     private URL baseUrl;
     private URL containerUrl;
     private String clusterId;
+    private ServiceType serviceType;
 
     public Etcd2Service(URL baseUrl, URL containerUrl, String clusterId) {
         this.baseUrl = baseUrl;
         this.containerUrl = containerUrl;
         this.clusterId = clusterId;
+        //this.serviceType = serviceType;
     }
 
     public URL getBaseUrl() {
@@ -57,6 +61,10 @@ public class Etcd2Service {
         return this.clusterId;
     }
 
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
     public void setBaseUrl(URL baseUrl) {
         this.baseUrl = baseUrl;
     }
@@ -67,5 +75,9 @@ public class Etcd2Service {
 
     public void setClusterId(String clusterId) {
         this.clusterId = clusterId;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
     }
 }

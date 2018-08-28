@@ -20,6 +20,7 @@
 */
 package com.kumuluz.ee.discovery.utils;
 
+import com.kumuluz.ee.discovery.enums.ServiceType;
 import com.orbitz.consul.model.health.ServiceHealth;
 
 import java.net.MalformedURLException;
@@ -39,15 +40,18 @@ public class ConsulService {
 
     public static final String TAG_HTTPS = "https";
     public static final String TAG_VERSION_PREFIX = "version=";
+    public static final String TAG_SERVICE_TYPE = "type=";
 
     private String id;
     private URL serviceUrl;
     private String version;
+    private ServiceType serviceType;
 
-    private ConsulService(String id, URL serviceUrl, String version) {
+    private ConsulService(String id, URL serviceUrl, String version, ServiceType serviceType) {
         this.id = id;
         this.serviceUrl = serviceUrl;
         this.version = version;
+        this.serviceType = serviceType;
     }
 
     public URL getServiceUrl() {
@@ -62,20 +66,28 @@ public class ConsulService {
         return id;
     }
 
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
     public static ConsulService getInstanceFromServiceHealth(ServiceHealth serviceHealth) {
         URL url = serviceHealthToURL(serviceHealth);
         if (url != null) {
             String version = null;
+            ServiceType serviceType = null;
             for (String tag : serviceHealth.getService().getTags()) {
                 if (tag.startsWith(TAG_VERSION_PREFIX)) {
                     version = tag.substring(TAG_VERSION_PREFIX.length());
+                }
+                if (tag.startsWith(TAG_SERVICE_TYPE)) {
+                    serviceType = ServiceType.valueOf(tag.substring(TAG_SERVICE_TYPE.length()));
                 }
             }
             if (version == null || version.isEmpty()) {
                 version = "1.0.0";
             }
 
-            return new ConsulService(serviceHealth.getService().getId(), url, version);
+            return new ConsulService(serviceHealth.getService().getId(), url, version, serviceType);
         }
 
         return null;

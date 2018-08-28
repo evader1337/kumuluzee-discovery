@@ -23,6 +23,7 @@ package com.kumuluz.ee.discovery;
 import com.kumuluz.ee.common.config.EeConfig;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.discovery.enums.AccessType;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 import com.kumuluz.ee.discovery.utils.*;
 import com.orbitz.consul.*;
 import com.orbitz.consul.async.ConsulResponseCallback;
@@ -120,11 +121,16 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public void register(String serviceName, String version, String environment, long ttl, long pingInterval,
-                         boolean singleton, String baseUrl, String serviceId) {
+                         boolean singleton, String baseUrl, String serviceId, ServiceType serviceType) {
 
         String serviceProtocol = null;
         Integer servicePort = null;
         String address = null;
+
+        if(serviceType == null) {
+            serviceType = ServiceType.REST;
+        }
+
         if (baseUrl != null) {
             try {
                 URL baseUrlObj = new URL(baseUrl);
@@ -141,14 +147,7 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
         }
 
         if (servicePort == null) {
-            // get service port
-            servicePort = EeConfig.getInstance().getServer().getHttp().getPort();
-            if (servicePort == null) {
-                servicePort = EeConfig.getInstance().getServer().getHttps().getPort();
-            }
-            if (servicePort == null) {
-                servicePort = configurationUtil.getInteger("port").orElse(8080);
-            }
+            servicePort = CommonUtils.getServicePort(serviceType);
         }
 
         // get retry delays
@@ -160,7 +159,7 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
 
         ConsulServiceConfiguration serviceConfiguration = new ConsulServiceConfiguration(serviceName, environment,
                 version, serviceProtocol, address, servicePort, ttl, singleton, startRetryDelay, maxRetryDelay,
-                deregisterCriticalServiceAfter, serviceId);
+                deregisterCriticalServiceAfter, serviceId, serviceType);
 
         // register and schedule heartbeats
         ConsulRegistrator registrator = new ConsulRegistrator(this.agentClient, this.healthClient,
@@ -173,9 +172,9 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public void register(String serviceName, String version, String environment, long ttl, long pingInterval, boolean
-            singleton) {
+            singleton, ServiceType serviceType) {
 
-        register(serviceName, version, environment, ttl, pingInterval, singleton, null, null);
+        register(serviceName, version, environment, ttl, pingInterval, singleton, null, null, serviceType);
 
     }
 

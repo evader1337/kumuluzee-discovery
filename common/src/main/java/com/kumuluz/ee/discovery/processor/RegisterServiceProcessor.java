@@ -70,14 +70,12 @@ public class RegisterServiceProcessor extends AbstractProcessor {
 
         // get full qualified names of annotated classes
         Set<String> serviceClassNames = new HashSet<>();
-        for (Element element : annotatedClasses) {
-            serviceClassNames.add(element.toString());
-        }
+        annotatedClasses.forEach(element -> serviceClassNames.add(element.toString()));
 
         // write annotated class names to service file
         if (!serviceClassNames.isEmpty()) {
             try {
-                writeServiceFile(serviceClassNames, "META-INF/services/javax.ws.rs.core.Application");
+                writeServiceFile(serviceClassNames, "META-INF/kumuluzee/discovery/com.kumuluz.ee.discovery.RegisterService");
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -21,6 +21,7 @@
 package com.kumuluz.ee.discovery.utils;
 
 import com.kumuluz.ee.common.runtime.EeRuntime;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 
 /**
  * Service configuration data.
@@ -38,6 +39,7 @@ public class ConsulServiceConfiguration {
     private int servicePort;
     private long ttl;
     private boolean singleton;
+    private ServiceType serviceType;
 
     private int startRetryDelay;
     private int maxRetryDelay;
@@ -45,7 +47,7 @@ public class ConsulServiceConfiguration {
 
     public ConsulServiceConfiguration(String serviceName, String environment, String version, String serviceProtocol,
                                       String address, int servicePort, long ttl, boolean singleton, int startRetryDelay,
-                                      int maxRetryDelay, int deregisterCriticalServiceAfter, String serviceId) {
+                                      int maxRetryDelay, int deregisterCriticalServiceAfter, String serviceId, ServiceType serviceType) {
         this.serviceName = serviceName;
         this.environment = environment;
         this.version = version;
@@ -60,6 +62,7 @@ public class ConsulServiceConfiguration {
         this.servicePort = servicePort;
         this.ttl = ttl;
         this.singleton = singleton;
+        this.serviceType = serviceType;
 
         this.startRetryDelay = startRetryDelay;
         this.maxRetryDelay = maxRetryDelay;
@@ -104,6 +107,10 @@ public class ConsulServiceConfiguration {
 
     public boolean isSingleton() {
         return singleton;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
     }
 
     public int getStartRetryDelay() {

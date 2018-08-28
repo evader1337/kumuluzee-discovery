@@ -20,6 +20,8 @@
 */
 package com.kumuluz.ee.discovery.utils;
 
+import com.kumuluz.ee.discovery.enums.ServiceType;
+
 /**
  * Consul-specific util class.
  *

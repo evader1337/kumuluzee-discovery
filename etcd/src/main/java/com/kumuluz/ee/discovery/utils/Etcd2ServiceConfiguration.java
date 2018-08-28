@@ -21,6 +21,7 @@
 package com.kumuluz.ee.discovery.utils;
 
 import com.kumuluz.ee.common.runtime.EeRuntime;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 
 /**
  * Service configuration data.
@@ -38,13 +39,14 @@ public class Etcd2ServiceConfiguration {
     private String baseUrl;
     private String containerUrl;
     private String clusterId;
+    private ServiceType serviceType;
 
     private String serviceInstanceKey;
     private String serviceKeyUrl;
 
     public Etcd2ServiceConfiguration(String serviceName, String serviceVersion, String environment, int ttl,
                                      boolean singleton, String baseUrl, String containerUrl, String clusterId, String
-                                             serviceId) {
+                                             serviceId, ServiceType serviceType) {
         this.serviceName = serviceName;
         this.serviceVersion = serviceVersion;
         this.environment = environment;
@@ -53,6 +55,7 @@ public class Etcd2ServiceConfiguration {
         this.baseUrl = baseUrl;
         this.containerUrl = containerUrl;
         this.clusterId = clusterId;
+        this.serviceType = serviceType;
 
         if (serviceId == null) {
             this.serviceInstanceKey = Etcd2Utils.getServiceKeyInstance(this.environment, this.serviceName,
@@ -95,6 +98,10 @@ public class Etcd2ServiceConfiguration {
 
     public String getClusterId() {
         return this.clusterId;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
     }
 
     public String getServiceInstanceKey() {

@@ -20,10 +20,14 @@
 */
 package com.kumuluz.ee.discovery.utils;
 
+import com.kumuluz.ee.common.config.EeConfig;
+import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 import com.vdurmont.semver4j.Requirement;
 import com.vdurmont.semver4j.Semver;
 import com.vdurmont.semver4j.SemverException;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -105,5 +109,55 @@ public class CommonUtils {
         } else {
             return Optional.empty();
         }
+    }
+
+    public static String getBaseUrl(ServiceType serviceType) {
+        String baseUrl = null;
+        ConfigurationUtil configurationUtil = ConfigurationUtil.getInstance();
+        if(serviceType == ServiceType.GRPC) {
+            baseUrl = configurationUtil.get("kumuluzee.grpc.server.base-url").orElse(null);
+        }
+        if(baseUrl == null) {
+            baseUrl = EeConfig.getInstance().getServer().getBaseUrl();
+            if (baseUrl == null || baseUrl.isEmpty()) {
+                baseUrl = configurationUtil.get("kumuluzee.base-url").orElse(null);
+                if (baseUrl != null) {
+                    try {
+                        baseUrl = new URL(baseUrl).toString();
+                    } catch (MalformedURLException e) {
+                        baseUrl = null;
+                    }
+                }
+            }
+        }
+        if(serviceType == ServiceType.GRAPHQL && baseUrl != null) {
+            baseUrl += configurationUtil.get("kumuluzee.graphql.mapping").orElse("/graphql");
+        }
+        return baseUrl;
+    }
+
+    public static Integer getServicePort(ServiceType serviceType) {
+        Integer servicePort = null;
+        ConfigurationUtil configurationUtil = ConfigurationUtil.getInstance();
+        switch (serviceType) {
+            case GRPC:
+                servicePort = configurationUtil.getInteger("kumuluzee.grpc.server.http.port").orElse(null);
+                if(servicePort == null) {
+                    servicePort = configurationUtil.getInteger("kumuluzee.grpc.server.https.port").orElse(null);
+                }
+                if(servicePort != null) {
+                    break;
+                }
+            default:
+                servicePort = EeConfig.getInstance().getServer().getHttp().getPort();
+                if (servicePort == null) {
+                    servicePort = EeConfig.getInstance().getServer().getHttps().getPort();
+                }
+                if (servicePort == null) {
+                    servicePort = configurationUtil.getInteger("port").orElse(8080);
+                }
+                break;
+        }
+        return servicePort;
     }
 }

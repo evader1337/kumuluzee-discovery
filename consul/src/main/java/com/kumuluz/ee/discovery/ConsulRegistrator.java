@@ -75,7 +75,7 @@ public class ConsulRegistrator implements Runnable {
     private void sendHeartbeat() {
         log.fine("Sending heartbeat.");
         try {
-            agentClient.pass(this.serviceConfiguration.getServiceId());
+            agentClient.pass(this.serviceConfiguration.getServiceId(), "Service up and running.");
         } catch (NotRegisteredException e) {
             log.warning("Received NotRegisteredException from Consul AgentClient when sending heartbeat. " +
                     "Reregistering service.");
@@ -110,7 +110,8 @@ public class ConsulRegistrator implements Runnable {
                                 .name(this.serviceConfiguration.getServiceConsulKey())
                                 .id(this.serviceConfiguration.getServiceId())
                                 .addTags(this.serviceConfiguration.getServiceProtocol(),
-                                        ConsulService.TAG_VERSION_PREFIX + this.serviceConfiguration.getVersion());
+                                        ConsulService.TAG_VERSION_PREFIX + this.serviceConfiguration.getVersion(),
+                                        ConsulService.TAG_SERVICE_TYPE + this.serviceConfiguration.getServiceType());
 
                         if (this.serviceConfiguration.getAddress() != null) {
                             registrationBuilder.address(this.serviceConfiguration.getAddress());

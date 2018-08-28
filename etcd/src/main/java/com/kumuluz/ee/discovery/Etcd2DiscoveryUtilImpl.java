@@ -23,6 +23,7 @@ package com.kumuluz.ee.discovery;
 import com.kumuluz.ee.common.config.EeConfig;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.discovery.enums.AccessType;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 import com.kumuluz.ee.discovery.exceptions.EtcdNotAvailableException;
 import com.kumuluz.ee.discovery.utils.*;
 import io.netty.handler.ssl.SslContext;
@@ -198,24 +199,14 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public void register(String serviceName, String version, String environment, long ttl,
-                         long pingInterval, boolean singleton, String baseUrl, String serviceId) {
+                         long pingInterval, boolean singleton, String baseUrl, String serviceId, ServiceType serviceType) {
 
-        EeConfig eeConfig = EeConfig.getInstance();
+        if (serviceType == null) {
+            serviceType = ServiceType.REST;
+        }
 
         if (baseUrl == null) {
-            // get service URL
-            baseUrl = eeConfig.getServer().getBaseUrl();
-            if (baseUrl == null || baseUrl.isEmpty()) {
-                baseUrl = configurationUtil.get("kumuluzee.base-url").orElse(null);
-                if (baseUrl != null) {
-                    try {
-                        baseUrl = new URL(baseUrl).toString();
-                    } catch (MalformedURLException e) {
-                        log.severe("Cannot parse kumuluzee.base-url. Exception: " + e.toString());
-                        baseUrl = null;
-                    }
-                }
-            }
+            baseUrl = CommonUtils.getBaseUrl(serviceType);
         }
 
         String containerUrl = configurationUtil.get("kumuluzee.container-url").orElse(null);
@@ -245,14 +236,7 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
             interfaceAddresses.sort(new HostAddressComparator());
             URL ipUrl = null;
 
-            // get service port
-            Integer servicePort = eeConfig.getServer().getHttp().getPort();
-            if (servicePort == null) {
-                servicePort = EeConfig.getInstance().getServer().getHttps().getPort();
-            }
-            if (servicePort == null) {
-                servicePort = configurationUtil.getInteger("port").orElse(8080);
-            }
+            Integer servicePort = CommonUtils.getServicePort(serviceType);
 
             for (int i = 0; i < interfaceAddresses.size() && ipUrl == null; i++) {
                 InetAddress addr = interfaceAddresses.get(i);
@@ -288,7 +272,7 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
         }
 
         Etcd2ServiceConfiguration serviceConfiguration = new Etcd2ServiceConfiguration(serviceName, version,
-                environment, (int) ttl, singleton, baseUrl, containerUrl, this.clusterId, serviceId);
+                environment, (int) ttl, singleton, baseUrl, containerUrl, this.clusterId, serviceId, serviceType);
 
         this.registeredServices.add(serviceConfiguration);
 
@@ -299,9 +283,9 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public void register(String serviceName, String version, String environment, long ttl, long pingInterval, boolean
-            singleton) {
+            singleton, ServiceType serviceType) {
 
-        register(serviceName, version, environment, ttl, pingInterval, singleton, null, null);
+        register(serviceName, version, environment, ttl, pingInterval, singleton, null, null, serviceType);
 
     }
 

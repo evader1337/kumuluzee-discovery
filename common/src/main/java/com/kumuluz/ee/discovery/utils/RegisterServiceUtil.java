@@ -21,8 +21,11 @@
 package com.kumuluz.ee.discovery.utils;
 
 import com.kumuluz.ee.common.config.EeConfig;
+import com.kumuluz.ee.common.runtime.EeRuntime;
+import com.kumuluz.ee.common.runtime.EeRuntimeExtension;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.discovery.annotations.RegisterService;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
@@ -30,8 +33,10 @@ import javax.enterprise.context.Initialized;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.ws.rs.core.Application;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.ServiceLoader;
 import java.util.logging.Logger;
 
@@ -56,21 +61,60 @@ public class RegisterServiceUtil {
     }
 
     private void initialiseBean() {
-
-        List<Application> applications = new ArrayList<>();
-
-        ServiceLoader.load(Application.class).forEach(applications::add);
-
-        for (Application application : applications) {
-            log.info("Registering JAX-RS application class: " + application.getClass().getSimpleName());
-            registerService(application.getClass());
+        ClassLoader classLoader = getClass().getClassLoader();
+        InputStream is = classLoader.getResourceAsStream("META-INF/kumuluzee/discovery/com.kumuluz.ee.discovery.RegisterService");
+        if (is != null) {
+            Scanner scanner = new Scanner(is);
+            boolean registered = false;
+            Class <?> grpcAnnotation = null;
+            Class <?> graphqlAnnotation = null;
+            for(EeRuntimeExtension eeRuntimeExtension : EeRuntime.getInstance().getEeExtensions()) {
+                if (eeRuntimeExtension.getGroup().equalsIgnoreCase("grpc")) {
+                    try {
+                        grpcAnnotation = Class.forName("com.kumuluz.ee.grpc.annotations.GrpcService");
+                    } catch (ClassNotFoundException e) {
+                        log.warning("Couldn't load needed annotation for gRPC extension.");
+                    }
+                } else if(eeRuntimeExtension.getGroup().equalsIgnoreCase("graphql")) {
+                    try {
+                        graphqlAnnotation = Class.forName("com.kumuluz.ee.graphql.annotations.GraphQLApplicationClass");
+                    } catch (ClassNotFoundException e) {
+                        log.warning("Couldn't load needed annotation for GraphQL extension.");
+                    }
+                }
+            }
+            while (scanner.hasNextLine()) {
+                if(registered) {
+                    log.warning("Service already registered, skipping further registrations. KumuluzEE Discovery allows registration of one service per microservice.");
+                    break;
+                }
+                String service = scanner.nextLine();
+                try {
+                    Class klass = Class.forName(service);
+                    if (Application.class.isAssignableFrom(klass)) {
+                        registerService(klass, ServiceType.REST);
+                        registered = true;
+                    } else if (grpcAnnotation != null && klass.isAnnotationPresent(grpcAnnotation)) {
+                        registerService(Class.forName(service), ServiceType.GRPC);
+                        registered = true;
+                    } else if (graphqlAnnotation != null && klass.isAnnotationPresent(graphqlAnnotation)) {
+                        registerService(Class.forName(service), ServiceType.GRAPHQL);
+                        registered = true;
+                    } else {
+                        log.warning("Missing dependencies for GraphQL/gRPC. Service was not registered.");
+                    }
+                } catch (ClassNotFoundException e) {
+                    log.warning(e.getMessage());
+                }
+            }
+            scanner.close();
         }
     }
 
     /**
      * Method initialises class fields from configuration.
      */
-    private void registerService(Class targetClass) {
+    private void registerService(Class targetClass, ServiceType serviceType) {
 
         if (targetClassIsProxied(targetClass)) {
             targetClass = targetClass.getSuperclass();
@@ -139,9 +183,9 @@ public class RegisterServiceUtil {
 
             boolean singleton = registerServiceAnnotation.singleton();
 
-            log.info("Registering service: " + serviceName);
+            log.info("Registering " + serviceType.toString() +  " service: " + serviceName);
 
-            discoveryUtil.register(serviceName, version, environment, ttl, pingInterval, singleton);
+            discoveryUtil.register(serviceName, version, environment, ttl, pingInterval, singleton, serviceType);
 
         }
     }

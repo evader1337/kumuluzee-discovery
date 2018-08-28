@@ -21,6 +21,7 @@
 package com.kumuluz.ee.discovery.annotations;
 
 import com.kumuluz.ee.discovery.enums.AccessType;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
@@ -47,4 +48,6 @@ public @interface DiscoverService {
     @Nonbinding String version() default "*";
 
     @Nonbinding AccessType accessType() default AccessType.GATEWAY;
+
+    @Nonbinding ServiceType serviceType() default ServiceType.REST;
 }

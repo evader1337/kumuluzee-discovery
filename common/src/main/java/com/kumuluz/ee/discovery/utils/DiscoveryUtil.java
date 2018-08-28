@@ -21,6 +21,7 @@
 package com.kumuluz.ee.discovery.utils;
 
 import com.kumuluz.ee.discovery.enums.AccessType;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 
 import java.net.URL;
 import java.util.List;
@@ -43,9 +44,10 @@ public interface DiscoveryUtil {
      * @param ttl instance TTL
      * @param pingInterval refresh interval
      * @param singleton is service singleton
+     * @param serviceType service type
      */
     void register(String serviceName, String version, String environment, long ttl, long
-            pingInterval, boolean singleton);
+            pingInterval, boolean singleton, ServiceType serviceType);
 
     /**
      * Registers service instance
@@ -58,9 +60,10 @@ public interface DiscoveryUtil {
      * @param singleton is service singleton
      * @param baseUrl base URL of the instance
      * @param serviceId unique service ID
+     * @param serviceType service type
      */
     void register(String serviceName, String version, String environment, long ttl, long
-            pingInterval, boolean singleton, String baseUrl, String serviceId);
+            pingInterval, boolean singleton, String baseUrl, String serviceId, ServiceType serviceType);
 
     /**
      * Deregisters all instances, registered with the register(...) methods.

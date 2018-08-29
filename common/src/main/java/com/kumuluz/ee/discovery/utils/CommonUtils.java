@@ -46,7 +46,7 @@ public class CommonUtils {
     private static int lastInstanceServedIndex;
 
     public static String determineVersion(DiscoveryUtil discoveryUtil, String serviceName, String version,
-                                          String environment) {
+                                          String environment, ServiceType serviceType) {
 
         // check, if version has special characters (*, ^, ~)
         // if true, use get getServiceVersions to get appropriate version
@@ -67,7 +67,7 @@ public class CommonUtils {
             }
         }
 
-        Optional<List<String>> versionsOpt = discoveryUtil.getServiceVersions(serviceName, environment);
+        Optional<List<String>> versionsOpt = discoveryUtil.getServiceVersions(serviceName, environment, serviceType);
 
         if (versionsOpt.isPresent()) {
             List<String> versions = versionsOpt.get();

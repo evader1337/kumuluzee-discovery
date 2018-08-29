@@ -217,7 +217,7 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public Optional<List<URL>> getServiceInstances(String serviceName, String version, String environment,
-                                                   AccessType accessType) {
+                                                   AccessType accessType, ServiceType serviceType) {
         String consulServiceKey = ConsulUtils.getConsulServiceKey(serviceName, environment);
         if (!this.serviceInstances.containsKey(consulServiceKey) ||
                 !this.serviceVersions.containsKey(consulServiceKey)) {
@@ -255,9 +255,9 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
         List<URL> urlList = new LinkedList<>();
 
         if (version != null) {
-            String resolvedVersion = CommonUtils.determineVersion(this, serviceName, version, environment);
+            String resolvedVersion = CommonUtils.determineVersion(this, serviceName, version, environment, serviceType);
             for (ConsulService consulService : serviceList) {
-                if (consulService.getVersion().equals(resolvedVersion)) {
+                if (consulService.getVersion().equals(resolvedVersion) && consulService.getServiceType() == serviceType) {
                     urlList.add(consulService.getServiceUrl());
                 }
             }
@@ -372,9 +372,9 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
 
     @Override
     public Optional<URL> getServiceInstance(String serviceName, String version, String environment,
-                                            AccessType accessType) {
+                                            AccessType accessType, ServiceType serviceType) {
         Optional<List<URL>> optionalServiceInstances = getServiceInstances(serviceName, version, environment,
-                accessType);
+                accessType, serviceType);
 
         return optionalServiceInstances.flatMap(CommonUtils::pickServiceInstanceRoundRobin);
 
@@ -383,16 +383,16 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
     @Override
     public Optional<URL> getServiceInstance(String serviceName, String version, String environment) {
 
-        return getServiceInstance(serviceName, version, environment, AccessType.DIRECT);
+        return getServiceInstance(serviceName, version, environment, AccessType.DIRECT, ServiceType.REST);
 
     }
 
     @Override
-    public Optional<List<String>> getServiceVersions(String serviceName, String environment) {
+    public Optional<List<String>> getServiceVersions(String serviceName, String environment, ServiceType serviceType) {
         String consulServiceKey = ConsulUtils.getConsulServiceKey(serviceName, environment);
         if (!this.serviceVersions.containsKey(consulServiceKey)) {
             // initialize serviceVersions and watcher
-            getServiceInstances(serviceName, null, environment, AccessType.DIRECT);
+            getServiceInstances(serviceName, null, environment, AccessType.DIRECT, serviceType);
         }
 
         List<String> versionsList = new LinkedList<>();
@@ -434,9 +434,9 @@ public class ConsulDiscoveryUtilImpl implements DiscoveryUtil {
     }
 
     @Override
-    public void disableServiceInstance(String serviceName, String version, String environment, URL url) {
+    public void disableServiceInstance(String serviceName, String version, String environment, URL url, ServiceType serviceType) {
         // init serviceInstances, if not already present
-        getServiceInstances(serviceName, version, environment, AccessType.DIRECT);
+        getServiceInstances(serviceName, version, environment, AccessType.DIRECT, serviceType);
         List<ConsulService> serviceList = this.serviceInstances
                 .get(ConsulUtils.getConsulServiceKey(serviceName, environment));
         for (ConsulService consulService : serviceList) {

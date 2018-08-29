@@ -38,11 +38,11 @@ public class Etcd2Service {
     private String clusterId;
     private ServiceType serviceType;
 
-    public Etcd2Service(URL baseUrl, URL containerUrl, String clusterId) {
+    public Etcd2Service(URL baseUrl, URL containerUrl, String clusterId, ServiceType serviceType) {
         this.baseUrl = baseUrl;
         this.containerUrl = containerUrl;
         this.clusterId = clusterId;
-        //this.serviceType = serviceType;
+        this.serviceType = serviceType;
     }
 
     public URL getBaseUrl() {

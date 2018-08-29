@@ -24,6 +24,7 @@ import com.kumuluz.ee.common.config.EeConfig;
 import com.kumuluz.ee.configuration.utils.ConfigurationUtil;
 import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.discovery.enums.AccessType;
+import com.kumuluz.ee.discovery.enums.ServiceType;
 import com.kumuluz.ee.discovery.exceptions.ServiceNotFoundException;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -126,6 +127,7 @@ public class DiscoverServiceProducer {
         String environment = injectionPoint.getAnnotated().getAnnotation(DiscoverService.class).environment();
         String version = injectionPoint.getAnnotated().getAnnotation(DiscoverService.class).version();
         AccessType accessType = injectionPoint.getAnnotated().getAnnotation(DiscoverService.class).accessType();
+        ServiceType serviceType = injectionPoint.getAnnotated().getAnnotation(DiscoverService.class).serviceType();
 
         if (environment.isEmpty()) {
             environment = EeConfig.getInstance().getEnv().getName();
@@ -138,7 +140,7 @@ public class DiscoverServiceProducer {
         log.info("Initializing field for service: " + serviceName + " version: " + version + " environment: " +
                 environment);
 
-        return discoveryUtil.getServiceInstance(serviceName, version, environment, accessType);
+        return discoveryUtil.getServiceInstance(serviceName, version, environment, accessType, serviceType);
 
     }
 

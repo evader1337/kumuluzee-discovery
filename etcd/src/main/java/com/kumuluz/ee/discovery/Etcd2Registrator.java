@@ -99,6 +99,8 @@ public class Etcd2Registrator implements Runnable {
                 try {
                     etcd.putDir(this.serviceConfig.getServiceInstanceKey()).ttl(this.serviceConfig.getTtl())
                             .send().get();
+                    etcd.put(this.serviceConfig.getServiceInstanceKey() + "/type",
+                            this.serviceConfig.getServiceType().toString()).send().get();
                     etcd.put(this.serviceConfig.getServiceKeyUrl(), this.serviceConfig.getBaseUrl()).send().get();
                     if (this.serviceConfig.getContainerUrl() != null) {
                         etcd.put(this.serviceConfig.getServiceInstanceKey() + "/containerUrl",
@@ -108,8 +110,6 @@ public class Etcd2Registrator implements Runnable {
                         etcd.put(this.serviceConfig.getServiceInstanceKey() + "/clusterId",
                                 this.serviceConfig.getClusterId()).send().get();
                     }
-                    etcd.put(this.serviceConfig.getServiceInstanceKey() + "/type",
-                            this.serviceConfig.getServiceType().toString()).send().get();
                     this.isRegistered = true;
                 } catch (SocketException | TimeoutException e) {
                     handleTimeoutException(e);

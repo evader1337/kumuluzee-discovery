@@ -78,7 +78,7 @@ public interface DiscoveryUtil {
     void deregister(String instanceId);
 
     Optional<List<URL>> getServiceInstances(String serviceName, String version, String environment,
-                                            AccessType accessType);
+                                            AccessType accessType, ServiceType serviceType);
 
     /**
      * Return service instance.
@@ -89,7 +89,7 @@ public interface DiscoveryUtil {
      * @param accessType  access type: direct or gateway
      * @return
      */
-    Optional<URL> getServiceInstance(String serviceName, String version, String environment, AccessType accessType);
+    Optional<URL> getServiceInstance(String serviceName, String version, String environment, AccessType accessType, ServiceType serviceType);
 
     /**
      * Return service instance.
@@ -101,7 +101,7 @@ public interface DiscoveryUtil {
      */
     Optional<URL> getServiceInstance(String serviceName, String version, String environment);
 
-    Optional<List<String>> getServiceVersions(String serviceName, String environment);
+    Optional<List<String>> getServiceVersions(String serviceName, String environment, ServiceType serviceType);
 
-    void disableServiceInstance(String serviceName, String version, String environment, URL url);
+    void disableServiceInstance(String serviceName, String version, String environment, URL url, ServiceType serviceType);
 }

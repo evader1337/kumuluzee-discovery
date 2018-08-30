@@ -436,7 +436,6 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
                         if (this.clusterId != null && this.clusterId.equals(service.getClusterId())) {
                             instances.add(service.getContainerUrl());
                         } else {
-                            System.out.println(service.getServiceType());
                             instances.add(service.getBaseUrl());
                         }
                     }
@@ -600,17 +599,13 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
 
         List<String> presentVersions = this.serviceVersions.get(serviceName + "_" + environment + "_" + serviceType);
 
-        String lastKnownVersion = lastKnownVersions.get(serviceName + "_" + environment);
-        if (lastKnownVersion != null && (presentVersions == null || !presentVersions.contains(lastKnownVersion))) {
-            // if present versions does not contain version of last known service, add it to the return object
-
-            // make a copy of presentVersions
-            if (presentVersions != null) {
-                presentVersions = new LinkedList<>(presentVersions);
-            } else {
-                presentVersions = new LinkedList<>();
+        if(presentVersions == null || presentVersions.size() == 0) {
+            // we check last known version if there are no present versions left
+            presentVersions = new LinkedList<>();
+            String lastKnownVersion = lastKnownVersions.get(serviceName + "_" + environment);
+            if (lastKnownVersion != null) {
+                presentVersions.add(lastKnownVersion);
             }
-            presentVersions.add(lastKnownVersion);
         }
 
         return Optional.ofNullable(presentVersions);
@@ -682,8 +677,12 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
                     serviceType = ServiceType.valueOf(response.getNode().getValue());
                 } catch (Exception e) {
                     if(this.serviceInstances.containsKey(serviceName + "_" + version + "_" + environment) &&
-                            this.serviceInstances.get(serviceName + "_" + version + "_" + environment).containsKey(getKeyOneLayerUp(node.getKey()))) {
-                        serviceType = this.serviceInstances.get(serviceName + "_" + version + "_" + environment).get(getKeyOneLayerUp(node.getKey())).getServiceType();
+                            this.serviceInstances.get(serviceName + "_" + version + "_" + environment).containsKey(node.getKey() + "/url")) {
+                        serviceType = this.serviceInstances.get(serviceName + "_" + version + "_" + environment).get(node.getKey() + "/url").getServiceType();
+                    }
+                    if(this.serviceInstances.containsKey(serviceName + "_" + version + "_" + environment) &&
+                            this.serviceInstances.get(serviceName + "_" + version + "_" + environment).containsKey(node.getKey())) {
+                        serviceType = this.serviceInstances.get(serviceName + "_" + version + "_" + environment).get(node.getKey()).getServiceType();
                     }
                 }
 
@@ -899,6 +898,7 @@ public class Etcd2DiscoveryUtilImpl implements DiscoveryUtil {
                                 // instance of new version was added
                                 versions.add(version);
                             }
+                            this.serviceVersions.put(serviceName + "_" + environment + "_" + serviceType, versions);
                         }
                     }
 
